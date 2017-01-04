@@ -1,11 +1,20 @@
 let openPosition;
+let containerHeight = 400;
+let containerWidth = 400;
+let rowCount = 4;
+let columnCount = 4;
+let orderedPositions = Array.from(Array(rowCount * columnCount).keys());
+let backgroundImageUrl = "https://robohash.org/slidepuzzle?size=600x600";
+let imageOffsetX = 100;
+let imageOffsetY = 200;
+let tiles = [];
 
 // DOM elements that we will manipulate
 const elements = {
   congratsMessage: document.querySelector('p[data-message="congrats"]'),
-  tiles: Array.from(document.querySelectorAll('.tile')),
   shuffleButton: document.querySelector('button[data-control="shuffle"]'),
   solveButton: document.querySelector('button[data-control="solve"]'),
+  tileContainer: document.querySelector('div[data-ui="tile-container"]'),
 }
 
 // keyCodes for arrow keys
@@ -40,7 +49,7 @@ function removeClasses(element, ...classNames) {
 // end helpers
 
 function randomPositions() {
-  const positions = shuffle(Array.from(Array(16).keys()));
+  const positions = shuffle(orderedPositions);
   return {
     used: positions.slice(0,15),
     open: positions[15],
@@ -53,14 +62,14 @@ function resetPuzzle() {
   let startPositions = shuffledPositions.used;
   openPosition = shuffledPositions.open;
 
-  elements.tiles.forEach((tile, index) => {
+  tiles.forEach((tile, index) => {
     tile.position = startPositions[index];
     arrangeTileOnBoard(tile);
   })
 }
 
 function solvePuzzle() {
-  elements.tiles.forEach((tile, index) => {
+  tiles.forEach((tile, index) => {
     tile.position = index;
     arrangeTileOnBoard(tile);
   })
@@ -83,7 +92,7 @@ function findTileWithPosition(tile, position) {
 
 function checkSolved(e) {
   let solved = true;
-  elements.tiles.forEach(tile => {
+  tiles.forEach(tile => {
     if (tile.position !== parseInt(tile.dataset.correct)) {
       solved = false;
     }
@@ -101,7 +110,7 @@ function moveTile(e) {
 
   // e.g., if left arrow pushed and open position is 2, tile to move is (2 - -1), or 3
   let maybeNewOpenPosition = openPosition - positionChanges[e.keyCode];
-  let movingTile = elements.tiles.find(tile => findTileWithPosition(tile, maybeNewOpenPosition));
+  let movingTile = tiles.find(tile => findTileWithPosition(tile, maybeNewOpenPosition));
 
   // if can't find tile or tile can't move a certain direction, stop
   if (!movingTile) return;
@@ -117,9 +126,42 @@ function moveTile(e) {
   arrangeTileOnBoard(movingTile);
 }
 
+function resizeTileContainer() {
+  elements.tileContainer.style.height = containerHeight;
+  elements.tileContainer.style.width = containerWidth;
+}
+
+function createTiles() {
+  orderedPositions.forEach((position, index) => {
+    let tile = document.createElement('div');
+    let row = Math.floor(position / columnCount);
+    let column = position % columnCount;
+    let tileWidth = containerWidth / columnCount;
+    let tileHeight = containerHeight / rowCount;
+    tile.dataset.correct = position;
+    addClasses(tile, 'tile');
+    if (index === orderedPositions.length - 1) {
+      addClasses(tile, 'invisible');
+    }
+    tile.style.backgroundImage = `url(${backgroundImageUrl})`;
+    tile.style.backgroundPositionX = `${0 - imageOffsetX - (column * tileWidth)}px`;
+    tile.style.backgroundPositionY = `${0 - imageOffsetY - (row * tileHeight)}px`;
+    tile.style.height = tileHeight;
+    tile.style.width =  tileWidth;
+    tile.style.top = `${(row * (containerHeight / rowCount)) + (row * 1)}px`;
+    tile.style.left = `${(column * (containerWidth / columnCount)) + (column * 1)}px`;
+    elements.tileContainer.appendChild(tile);
+    tile.position = position;
+    tiles.push(tile);
+  })
+}
+
+resizeTileContainer();
+createTiles();
+
 // bind events and shuffle puzzle to start
 window.addEventListener('keydown', moveTile);
 window.addEventListener('transitionend', checkSolved) // if a tile moves, check if it solves the puzzle
 elements.shuffleButton.addEventListener('click', resetPuzzle);
 elements.solveButton.addEventListener('click', solvePuzzle);
-resetPuzzle();
+// resetPuzzle();

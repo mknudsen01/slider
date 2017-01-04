@@ -17,14 +17,10 @@
   display: inline-block;
 }
 
-.tile-container {
+.container {
   display: inline-block;
   width: 420px;
   position: relative;
-}
-
-.invisible {
-  display: none;
 }
 
 .btn {
@@ -42,10 +38,6 @@
   position: absolute;
   transition: 0.5s all ease;
   font-size: 0;
-  width: 100px;
-  height: 100px;
-  /* change the hash from 'slidepuzzle' to whatever text you want to change the robot */
-  background-image: url("https://robohash.org/slidepuzzle?size=600x600");
   border: 3px solid #000;
   border-radius: 10px;
 }
@@ -82,4 +74,8 @@
 /* fourth row */
 .tile:nth-child(n+13):nth-child(-n+16) {
   background-position-y: -500px;
+}
+
+.invisible {
+  display: none !important;
 }
