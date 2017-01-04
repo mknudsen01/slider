@@ -4,9 +4,9 @@ let containerWidth = 400;
 let rowCount = 4;
 let columnCount = 4;
 let orderedPositions = Array.from(Array(rowCount * columnCount).keys());
-let backgroundImageUrl = "https://robohash.org/slidepuzzle?size=600x600";
-let imageOffsetX = 100;
-let imageOffsetY = 200;
+let backgroundImageUrl = "images/1.jpg";
+let imageOffsetX = 200;
+let imageOffsetY = 0;
 let tiles = [];
 
 // DOM elements that we will manipulate
