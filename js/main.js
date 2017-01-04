@@ -15,6 +15,8 @@ const elements = {
   shuffleButton: document.querySelector('button[data-control="shuffle"]'),
   solveButton: document.querySelector('button[data-control="solve"]'),
   tileContainer: document.querySelector('div[data-ui="tile-container"]'),
+  rowCount: document.querySelector('input[name="rows"]'),
+  columnCount: document.querySelector('input[name="columns"]'),
 }
 
 // keyCodes for arrow keys
@@ -22,7 +24,7 @@ const LEFT_ARROW = 37;
 const UP_ARROW = 38;
 const RIGHT_ARROW = 39;
 const DOWN_ARROW = 40;
-const positionChanges = {
+let positionChanges = {
   [LEFT_ARROW]: -1,
   [UP_ARROW]: -4,
   [RIGHT_ARROW]: 1,
@@ -51,8 +53,8 @@ function removeClasses(element, ...classNames) {
 function randomPositions() {
   const positions = shuffle(orderedPositions);
   return {
-    used: positions.slice(0,15),
-    open: positions[15],
+    used: positions.slice(0, orderedPositions.length - 1),
+    open: positions.slice(-1)[0],
   }
 }
 
@@ -73,21 +75,21 @@ function solvePuzzle() {
     tile.position = index;
     arrangeTileOnBoard(tile);
   })
-  openPosition = 15;
+  openPosition = rowCount * columnCount - 1;
 }
 
 function arrangeTileOnBoard(tile) {
   if (!elements.congratsMessage.classList.contains('invisible')) {
     addClasses(elements.congratsMessage, 'invisible');
   }
-  let div = Math.floor(tile.position / 4);
-  let mod = tile.position % 4;
-  tile.style.top = `${(div * 100) + (div * 1)}px`;
-  tile.style.left = `${(mod * 100) + (mod * 1)}px`;
+  let row = Math.floor(tile.position / columnCount);
+  let column = tile.position % columnCount;
+  tile.style.top = `${(row * (containerHeight / rowCount)) + (row * 1)}px`;
+  tile.style.left = `${(column * (containerWidth / columnCount)) + (column * 1)}px`;
 }
 
 function findTileWithPosition(tile, position) {
-  return tile.position === position;
+  return tile && tile.position === position;
 }
 
 function checkSolved(e) {
@@ -111,13 +113,16 @@ function moveTile(e) {
   // e.g., if left arrow pushed and open position is 2, tile to move is (2 - -1), or 3
   let maybeNewOpenPosition = openPosition - positionChanges[e.keyCode];
   let movingTile = tiles.find(tile => findTileWithPosition(tile, maybeNewOpenPosition));
+  let totalTiles = rowCount * columnCount;
+  let tilesInRow = columnCount;
+
 
   // if can't find tile or tile can't move a certain direction, stop
   if (!movingTile) return;
-  if (openPosition <= 3 && e.keyCode === DOWN_ARROW) return;
-  if (openPosition >= 12 && e.keyCode === UP_ARROW) return;
-  if (movingTile.position % 4 === 3 && e.keyCode === RIGHT_ARROW) return;
-  if (movingTile.position % 4 === 0 && e.keyCode === LEFT_ARROW) return;
+  if (openPosition <= (tilesInRow - 1) && e.keyCode === DOWN_ARROW) return;
+  if (openPosition >= (totalTiles - tilesInRow) && e.keyCode === UP_ARROW) return;
+  if (movingTile.position % tilesInRow === (tilesInRow - 1) && e.keyCode === RIGHT_ARROW) return;
+  if (movingTile.position % tilesInRow === 0 && e.keyCode === LEFT_ARROW) return;
 
   // switch the open position and the tile we just moved's current position
   [openPosition, movingTile.position] = [movingTile.position, openPosition];
@@ -132,6 +137,8 @@ function resizeTileContainer() {
 }
 
 function createTiles() {
+  elements.tileContainer.innerHTML = '';
+  tiles = [];
   orderedPositions.forEach((position, index) => {
     let tile = document.createElement('div');
     let row = Math.floor(position / columnCount);
@@ -156,6 +163,21 @@ function createTiles() {
   })
 }
 
+function adjustRowsAndColumns() {
+  window.removeEventListener('keydown', moveTile);
+  window.removeEventListener('transitionend', checkSolved) // if a tile moves, check if it solves the puzzle
+  rowCount = elements.rowCount.value;
+  columnCount = elements.columnCount.value;
+  positionChanges[UP_ARROW] = -columnCount;
+  positionChanges[DOWN_ARROW] = columnCount;
+  orderedPositions = Array.from(Array(rowCount * columnCount).keys());
+  openPosition = rowCount * columnCount - 1;
+  resizeTileContainer();
+  createTiles();
+  window.addEventListener('keydown', moveTile);
+  window.addEventListener('transitionend', checkSolved) // if a tile moves, check if it solves the puzzle
+}
+
 resizeTileContainer();
 createTiles();
 
@@ -164,4 +186,6 @@ window.addEventListener('keydown', moveTile);
 window.addEventListener('transitionend', checkSolved) // if a tile moves, check if it solves the puzzle
 elements.shuffleButton.addEventListener('click', resetPuzzle);
 elements.solveButton.addEventListener('click', solvePuzzle);
-// resetPuzzle();
+elements.rowCount.addEventListener('change', adjustRowsAndColumns);
+elements.columnCount.addEventListener('change', adjustRowsAndColumns);
+resetPuzzle();

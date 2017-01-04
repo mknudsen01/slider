@@ -79,3 +79,8 @@
 .invisible {
   display: none !important;
 }
+
+input {
+  padding: 5px 10px;
+  font-size: 14px;
+}
