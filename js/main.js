@@ -93,11 +93,9 @@ function findTileWithPosition(tile, position) {
 }
 
 function checkSolved(e) {
-  let solved = true;
-  tiles.forEach(tile => {
-    if (tile.position !== parseInt(tile.dataset.correct)) {
-      solved = false;
-    }
+  let tileCount = rowCount * columnCount;
+  let solved = openPosition === tileCount - 1 && tiles.slice(0, tileCount - 1).every((tile, index) => {
+    return tile.position === parseInt(tile.dataset.correct);
   })
   if (solved) endPuzzle();
 }
