@@ -1,0 +1,85 @@
+* {
+  box-sizing: border-box;
+  font-family: arial, sans-serif
+}
+
+.page {
+  width: 850px;
+  margin: 2% auto;
+}
+
+.puzzle {
+  display: flex;
+}
+
+.controls {
+  width: 400px;
+  display: inline-block;
+}
+
+.tile-container {
+  display: inline-block;
+  width: 420px;
+  position: relative;
+}
+
+.invisible {
+  display: none;
+}
+
+.btn {
+  padding: 5px 10px;
+  border-radius: 5px;
+  border: 0;
+  font-size: 20px;
+  color: #323232;
+}
+.btn--shuffle { background-color: #EFAC9F; }
+.btn--solve { background-color: #14E87B; }
+
+.tile {
+  display: inline-block;
+  position: absolute;
+  transition: 0.5s all ease;
+  font-size: 0;
+  width: 100px;
+  height: 100px;
+  /* change the hash from 'slidepuzzle' to whatever text you want to change the robot */
+  background-image: url("https://robohash.org/slidepuzzle?size=600x600");
+  border: 3px solid #000;
+  border-radius: 10px;
+}
+
+/* first column */
+.tile:nth-child(4n+1) {
+  background-position-x: -100px;
+}
+/* second column */
+.tile:nth-child(4n+2) {
+  background-position-x: -200px;
+}
+/* third column */
+.tile:nth-child(4n+3) {
+  background-position-x: -300px;
+}
+/* fourth column */
+.tile:nth-child(4n+4) {
+  background-position-x: -400px;
+}
+
+/* first row */
+.tile:nth-child(n):nth-child(-n+4) {
+  background-position-y: -200px;
+}
+/* second row */
+.tile:nth-child(n+5):nth-child(-n+8) {
+  background-position-y: -300px;
+}
+/* third row */
+.tile:nth-child(n+9):nth-child(-n+12) {
+  background-position-y: -400px;
+}
+/* fourth row */
+.tile:nth-child(n+13):nth-child(-n+16) {
+  background-position-y: -500px;
+}
