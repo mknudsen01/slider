@@ -60,7 +60,7 @@ const Game = (function() {
     })
   }
 
-  const findTileWithPosition(tile, position) {
+  const findTileWithPosition = (tile, position) => {
     return tile && tile.position === position;
   }
 
