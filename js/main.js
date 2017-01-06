@@ -14,17 +14,21 @@ const Game = (function() {
   const getOrderedPositions = () => Array.from(Array(rowCount * columnCount).keys());
   const addTile = (tile) => tiles.push(tile);
   const getTiles = () => tiles;
+  const setTiles = (newTiles) => tiles = newTiles;
   const clearTiles = () => tiles = [];
 
   const solvePuzzle = () => {
     tiles.forEach((tile, index) => {
       tile.position = index;
     })
-    setOpenPosition(getTileCount() - 1);
-    View.solvePuzzle({ tiles, rowCount, columnCount });
+    resetOpenPosition();
   }
 
-  const resetPuzzle = () => {
+  const resetOpenPosition = () => {
+    setOpenPosition(getTileCount() - 1);
+  }
+
+  const shuffleTiles = () => {
     let shuffledPositions = shuffle(Game.getOrderedPositions());
     let startPositions = shuffledPositions.slice(0, shuffledPositions.length - 1);
     setOpenPosition(shuffledPositions.slice(-1)[0]);
@@ -32,32 +36,25 @@ const Game = (function() {
     tiles.forEach((tile, index) => {
       tile.position = startPositions[index];
     })
-    View.resetPuzzle({ tiles, rowCount, columnCount });
   }
 
-  const checkSolved = (e) => {
+  const isSolved = (e) => {
     let tileCount = getTileCount();
-    let solved = getOpenPosition() === tileCount - 1 && tiles.slice(0, tileCount - 1).every((tile, index) => {
+    return getOpenPosition() === tileCount - 1 && tiles.slice(0, tileCount - 1).every((tile, index) => {
       return tile.position === tile.correct;
     })
-    if (solved) {
-      endPuzzle();
-      View.endPuzzle();
-    }
   }
 
   const createTiles = () => {
     clearTiles();
     getOrderedPositions().forEach(position => {
       let tile = {
-        node: View.createTile({ position, columnCount, rowCount, tileCount: getTileCount() }),
         correct: position,
         position: position,
       };
-
       addTile(tile);
-      View.addTile(tile.node);
     })
+    return tiles;
   }
 
   const findTileWithPosition = (tile, position) => {
@@ -91,23 +88,6 @@ const Game = (function() {
     View.moveTile({tile: movingTile, rowCount, columnCount});
   }
 
-  const adjustRowsAndColumns = () => {
-    window.removeEventListener('keydown', Game.moveTile);
-    window.removeEventListener('transitionend', Game.checkSolved)
-    setRowCount(View.rowCountInput.value);
-    setColumnCount(View.columnCountInput.value);
-    positionChanges[UP_ARROW] = -columnCount;
-    positionChanges[DOWN_ARROW] = columnCount;
-    setOpenPosition(rowCount * columnCount - 1);
-    View.tileContainer.innerHTML = '';
-    View.resizeTileContainer();
-    createTiles();
-    window.addEventListener('keydown', Game.moveTile);
-    window.addEventListener('transitionend', Game.checkSolved)
-  }
-
-  const endPuzzle = () => true;
-
   return {
     getOpenPosition,
     setOpenPosition,
@@ -121,11 +101,12 @@ const Game = (function() {
     addTile,
     getTiles,
     clearTiles,
-    resetPuzzle,
-    checkSolved,
+    shuffleTiles,
+    isSolved,
     createTiles,
     moveTile,
-    adjustRowsAndColumns,
+    resetOpenPosition,
+    setTiles,
   }
 })();
 
@@ -161,8 +142,9 @@ const View = {
     tiles.forEach(tile => this.moveTile({ tile, rowCount, columnCount }));
   },
 
-  createTile: function({ position, columnCount, rowCount, tileCount }) {
+  createTile: function({ position, columnCount, rowCount }) {
     let tile = document.createElement('div');
+    let tileCount = rowCount * columnCount;
     let row = Math.floor(position / columnCount);
     let column = position % columnCount;
     let tileWidth = this.containerWidth / columnCount;
@@ -227,15 +209,87 @@ function removeClasses(element, ...classNames) {
 // end helpers
 
 
+const Controller = (function() {
+  const init = () => {
+    resetTiles();
+    bindControlsListeners();
+    bindPuzzleMovementListeners();
+    bindPuzzleConfigListeners();
+  }
 
-View.resizeTileContainer();
-Game.createTiles();
+  const bindControlsListeners = () => {
+    View.shuffleButton.addEventListener('click', resetPuzzle);
+    View.solveButton.addEventListener('click', solvePuzzle);
+  }
 
-// bind events and shuffle puzzle to start
-window.addEventListener('keydown', Game.moveTile);
-window.addEventListener('transitionend', Game.checkSolved) // if a tile moves, check if it solves the puzzle
-View.shuffleButton.addEventListener('click', Game.resetPuzzle);
-View.solveButton.addEventListener('click', Game.solvePuzzle);
-View.rowCountInput.addEventListener('change', Game.adjustRowsAndColumns);
-View.columnCountInput.addEventListener('change', Game.adjustRowsAndColumns);
-Game.resetPuzzle();
+  const bindPuzzleConfigListeners = () => {
+    // bind events and shuffle puzzle to start
+    View.rowCountInput.addEventListener('change', adjustRowsAndColumns);
+    View.columnCountInput.addEventListener('change', adjustRowsAndColumns);
+  }
+
+  const solvePuzzle = () => {
+    Game.solvePuzzle();
+    View.solvePuzzle({ tiles: Game.getTiles(), rowCount: Game.getRowCount(), columnCount: Game.getColumnCount() });
+  }
+
+  const bindPuzzleMovementListeners = () => {
+    window.addEventListener('keydown', Game.moveTile);
+    window.addEventListener('transitionend', checkSolved) // if a tile moves, check if it solves the puzzle
+  }
+
+  const unbindPuzzleMovementListeners = () => {
+    window.removeEventListener('keydown', Game.moveTile);
+    window.removeEventListener('transitionend', Game.isSolved)
+  }
+
+  const checkSolved = () => {
+    if (Game.isSolved()) {
+      View.endPuzzle();
+    }
+  }
+
+  const resetTiles = () => {
+    View.resizeTileContainer();
+    let tiles = Game.createTiles();
+    tiles.forEach(tile => {
+      tile.node = View.createTile({ position: tile.position, columnCount: Game.getColumnCount(), rowCount: Game.getRowCount() })
+      View.addTile(tile.node);
+    })
+    Game.setTiles(tiles);
+    Game.resetOpenPosition();
+  }
+
+  const resetPuzzle = () => {
+    Game.shuffleTiles();
+    View.resetPuzzle({ tiles: Game.getTiles(), rowCount: Game.getRowCount(), columnCount: Game.getColumnCount() });
+  }
+
+  const adjustRowsAndColumns = () => {
+    unbindPuzzleMovementListeners();
+    let newRowCount = View.rowCountInput.value;
+    let newColumnCount = View.columnCountInput.value;
+
+    Game.setRowCount(newRowCount);
+    Game.setColumnCount(newColumnCount);
+
+    positionChanges[UP_ARROW] = -newColumnCount;
+    positionChanges[DOWN_ARROW] = newColumnCount;
+
+    Game.setOpenPosition(newRowCount * newColumnCount - 1);
+    View.tileContainer.innerHTML = '';
+    View.resizeTileContainer();
+    resetTiles();
+    bindPuzzleMovementListeners();
+  }
+
+  const hidePuzzle = () => {
+
+  }
+
+  return {
+    init,
+  }
+})();
+
+Controller.init();
