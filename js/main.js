@@ -122,6 +122,13 @@ const View = {
   tileContainer: document.querySelector('div[data-ui="tile-container"]'),
   rowCountInput: document.querySelector('input[name="rows"]'),
   columnCountInput: document.querySelector('input[name="columns"]'),
+  puzzleContainer: document.querySelector('.puzzle'),
+  mainImage: document.querySelector('img[data-ui="main-image"]'),
+  imageChoices: document.querySelectorAll('div[data-ui="image-choices"] img'),
+
+  hidePuzzle: function() {
+    addClasses(this.puzzleContainer, 'invisible');
+  },
 
   solvePuzzle: function({ tiles, rowCount, columnCount }) {
     tiles.forEach(tile => this.moveTile({ tile, rowCount, columnCount }));
@@ -165,6 +172,10 @@ const View = {
 
   addTile: function(tile) {
     this.tileContainer.appendChild(tile);
+  },
+
+  updatePuzzleImage: function(e) {
+    this.mainImage.src = e.target.src;
   },
 
   resizeTileContainer: function() {
@@ -215,11 +226,18 @@ const Controller = (function() {
     bindControlsListeners();
     bindPuzzleMovementListeners();
     bindPuzzleConfigListeners();
+    bindPuzzleImageChoiceListeners();
   }
 
   const bindControlsListeners = () => {
     View.shuffleButton.addEventListener('click', resetPuzzle);
     View.solveButton.addEventListener('click', solvePuzzle);
+  }
+
+  const bindPuzzleImageChoiceListeners = () => {
+    View.imageChoices.forEach(image => {
+      image.addEventListener('click', View.updatePuzzleImage.bind(View));
+    })
   }
 
   const bindPuzzleConfigListeners = () => {

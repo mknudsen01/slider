@@ -4,8 +4,30 @@
   </head>
   <body>
     <div class="page">
-      <div class="puzzle">
-        <div class="controls">
+      <div class="container">
+        <div class="grid position--relative height--500 overflow--hidden">
+          <img class="grid__item grid__item--1-1 height--auto position--absolute overflow--hidden" src="images/1.jpg" alt="" data-ui="main-image">
+          <div class="chooser ml-"></div>
+        </div>
+
+        <div class="grid mt height--125 overflow--hidden" data-ui="image-choices">
+          <div class="grid__item grid__item--1-4">
+            <img class="max-width--1-1" src="images/1.jpg" alt="">
+          </div>
+          <div class="grid__item grid__item--1-4">
+            <img class="max-width--1-1" src="images/2.jpg" alt="">
+          </div>
+          <div class="grid__item grid__item--1-4">
+            <img class="max-width--1-1" src="images/3.jpg" alt="">
+          </div>
+          <div class="grid__item grid__item--1-4">
+            <img class="max-width--1-1" src="images/4.jpg" alt="">
+          </div>
+        </div>
+
+      </div>
+      <div class="puzzle invisible grid">
+        <div class="grid__item grid__item--1-2 controls">
           <p>Use your arrow keys to put the robot back together</p>
           <button data-control="shuffle" class="btn btn--shuffle">shuffle</button>
           <button data-control="solve" class="btn btn--solve">solve</button>
@@ -17,7 +39,7 @@
           </div>
           <p data-message="congrats" class="invisible">You win!</p>
         </div>
-        <div class="container" data-ui="tile-container">
+        <div class="grid__item grid__item--1-2 container" data-ui="tile-container">
         </div>
       </div>
     </div>
