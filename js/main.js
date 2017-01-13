@@ -119,15 +119,24 @@ const View = {
   congratsMessage: document.querySelector('p[data-message="congrats"]'),
   shuffleButton: document.querySelector('button[data-control="shuffle"]'),
   solveButton: document.querySelector('button[data-control="solve"]'),
+  finalizeImageButton: document.querySelector('button[data-control="finalize-image"]'),
+  chooseNewImageButton: document.querySelector('button[data-control="choose-new"]'),
   tileContainer: document.querySelector('div[data-ui="tile-container"]'),
   rowCountInput: document.querySelector('input[name="rows"]'),
   columnCountInput: document.querySelector('input[name="columns"]'),
   puzzleContainer: document.querySelector('.puzzle'),
+  setupContainer: document.querySelector('.setup'),
   mainImage: document.querySelector('img[data-ui="main-image"]'),
   imageChoices: document.querySelectorAll('div[data-ui="image-choices"] img'),
 
   hidePuzzle: function() {
     addClasses(this.puzzleContainer, 'invisible');
+    removeClasses(this.setupContainer, 'invisible');
+  },
+
+  hideSetup: function()  {
+    addClasses(this.setupContainer, 'invisible');
+    removeClasses(this.puzzleContainer, 'invisible');
   },
 
   solvePuzzle: function({ tiles, rowCount, columnCount }) {
@@ -175,6 +184,7 @@ const View = {
   },
 
   updatePuzzleImage: function(e) {
+    this.backgroundImageUrl = e.target.src;
     this.mainImage.src = e.target.src;
   },
 
@@ -232,6 +242,8 @@ const Controller = (function() {
   const bindControlsListeners = () => {
     View.shuffleButton.addEventListener('click', resetPuzzle);
     View.solveButton.addEventListener('click', solvePuzzle);
+    View.finalizeImageButton.addEventListener('click', finalizeImage);
+    View.chooseNewImageButton.addEventListener('click', hidePuzzle);
   }
 
   const bindPuzzleImageChoiceListeners = () => {
@@ -268,6 +280,8 @@ const Controller = (function() {
   }
 
   const resetTiles = () => {
+    View.tileContainer.innerHTML = '';
+    View.resizeTileContainer();
     View.resizeTileContainer();
     let tiles = Game.createTiles();
     tiles.forEach(tile => {
@@ -276,6 +290,7 @@ const Controller = (function() {
     })
     Game.setTiles(tiles);
     Game.resetOpenPosition();
+    bindPuzzleMovementListeners();
   }
 
   const resetPuzzle = () => {
@@ -295,14 +310,23 @@ const Controller = (function() {
     positionChanges[DOWN_ARROW] = newColumnCount;
 
     Game.setOpenPosition(newRowCount * newColumnCount - 1);
+    resetTiles();
+  }
+
+  const finalizeImage = () => {
     View.tileContainer.innerHTML = '';
     View.resizeTileContainer();
     resetTiles();
     bindPuzzleMovementListeners();
+    hideSetup();
   }
 
   const hidePuzzle = () => {
+    View.hidePuzzle();
+  }
 
+  const hideSetup = () => {
+    View.hideSetup();
   }
 
   return {

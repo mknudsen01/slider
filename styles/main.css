@@ -16,6 +16,7 @@
 
 .puzzle {
   display: flex;
+  position: relative;
 }
 
 .btn {
@@ -24,9 +25,12 @@
   border: 0;
   font-size: 20px;
   color: #323232;
+  cursor: pointer;
 }
 .btn--shuffle { background-color: #EFAC9F; }
 .btn--solve { background-color: #14E87B; }
+.btn--success { background-color: #14E87B; }
+.btn--info { background-color: #EE9D37; }
 
 .tile {
   display: inline-block;
@@ -79,7 +83,6 @@ input {
   padding: 5px 10px;
   font-size: 14px;
 }
-
 
 .container {
   margin-left: auto;
@@ -138,6 +141,10 @@ input {
 
 .max-width--1-1 {
   max-width: 100%;
+}
+
+.w--1-1 {
+  width: 100%;
 }
 
 /* start atomic padding/margin classes*/
